@@ -2,7 +2,7 @@ import React from "react";
 
 const ScheduleTable = ({ ScheduleData }) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm w-full h-[50vh]">
+    <div className="overflow-x-auto rounded-lg border-2 border-gray-200 shadow-sm w-full h-[50vh]">
       <div className="container mx-auto p-4">
         {ScheduleData.map((schedule) => (
           <div key={schedule.id} className="mb-8">
@@ -37,7 +37,7 @@ const ScheduleTable = ({ ScheduleData }) => {
                         {session.hall || "TBA"}
                       </td>
                       <td className="border border-gray-300 px-4 py-2">
-                        {session.spaeker || "TBA"}
+                        {session.speaker || "TBA"}
                       </td>
                     </tr>
                   ))}
