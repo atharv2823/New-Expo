@@ -7,7 +7,6 @@ import "react-phone-number-input/style.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import Select from "react-select";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -19,10 +18,12 @@ import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import CustomTable from "./CustomTable";
+import logo from "@/public/RWE.png";
 
 import Link from "next/link";
 
 import avlogo from "@/public/avlogo.webp";
+import { Speaker } from "lucide-react";
 
 // Define the number of days
 const numberOfDays = 3;
@@ -35,7 +36,8 @@ function filterScheduleData(data) {
       sector: curr.Sector,
       title: curr.Title || "",
       hall: curr.Hall,
-      time: "", // Add logic to determine time if needed
+      speaker: curr.Speaker,
+      time: curr.Time,
     };
 
     if (existingDate) {
@@ -74,7 +76,10 @@ const Page = () => {
     state: "",
     country: "",
     receiveUpdates: "",
+    privacyPolicy:"",
   });
+  console.log("Sending formData:", formData);
+ 
 
   const [selectedSessions, setSelectedSessions] = useState([]);
   // console.log("selectedSessions", selectedSessions);
@@ -169,26 +174,31 @@ const Page = () => {
         theme: "colored",
       });
       setDisableBtn(false);
+      
       return;
     }
+    
 
-    const { privacyPolicy, receiveUpdates, ...dataToSubmit } = formData;
+    const { privacyPolicy, receiveUpdates, name ,company_name ,email , number , city , state, country ,sessions} = formData;
 
     const { data, error } = await supabase
       .from("delegates")
       .insert([
         {
-          name: "name",
-          company_name: "company_name",
-          number: "number",
-          email: "email",
-          city: "city",
-          state: "state",
-          country: "country",
-          sessions: "sessions",
+          name,
+          company_name,
+          number,
+          email,
+          city,
+          state,
+          country,
+          sessions: JSON.stringify(selectedSessions),
         },
+        
       ])
       .select();
+      
+
 
     if (error) {
       // console.error;
@@ -204,17 +214,17 @@ const Page = () => {
         theme: "colored",
       });
     } else {
-      // const { data, error } = await supabase
-      //   .from("delegates")
-      //   .insert({
-      //     ...dataToSubmit,
-      //     selectedSessions: selectedSessions,
-      //   })
-      //   .select();
+      const { data, error } = await supabase
+        .from("delegates")
+        .insert({
+          ...dataToSubmit,
+          selectedSessions: selectedSessions,
+        })
+        .select();
       if (error) {
         console.log(error);
       } else {
-        console.log(data);
+        console.log("Delegate registered successfully:", data);
 
         setTimeout(() => {
           router.push(`./thankyou?id=${data[0].id}`);
@@ -242,7 +252,7 @@ const Page = () => {
     e.preventDefault();
   };
 
-  const handleNonNumberChange = (e) => {
+ const handleNonNumberChange = (e) => {
     const { id, value } = e.target;
 
     if (isTextValid(value) || value === "") {
@@ -251,7 +261,19 @@ const Page = () => {
         [id]: value,
       });
     }
-  };
+  }; 
+
+// const handleNonNumberChange = (e) => {
+//   const { id, value } = e.target;
+
+//   if (isTextValid(value) || value === "") {
+//     setFormData((prevFormData) => ({
+//       ...prevFormData,
+//       [id]: value,
+//     }));
+//   }
+// };
+
 
   const router = useRouter();
 
@@ -287,8 +309,9 @@ const Page = () => {
   // Return the JSX for the component
   return (
     <>
-      <div className="main p-4 ">
-        <div className="header border-2 rounded-2xl mb-3">
+      <div className="main  max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="header border-2 rounded-2xl mb-6 mt-2 flex justify-center">
           <Link href="/">
             <Image
               src={avlogo}
@@ -300,23 +323,33 @@ const Page = () => {
           </Link>
         </div>
 
-        <div className="w-full">
+        {/* Table Section */}
+        <div className="w-full mb-8">
           <CustomTable ScheduleData={ScheduleData} />
         </div>
-        <form className="form p-4 border-2 rounded-2xl mt-4" onSubmit={handleSubmit}>
-          <div className="lg:text-3xl md:text-lg text-xl font-semibold mt-3 ml-6">
-            <h2 className="pb-2">Delegate Registration Form</h2>
-            <div className="h-[3px] lg:w-[400px] w-full rounded-t-md bg-gradient-to-r from-[#F9A700] to-[#009951]" />
+
+        {/* Delegate Registration Form */}
+        <form
+          className="form p-6 border-2 rounded-2xl shadow-md bg-white"
+          onSubmit={handleSubmit}
+        >
+          {/* Form Heading */}
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold">Delegate Registration Form</h2>
+            <div className="h-[3px] w-[250px] mx-auto bg-gradient-to-r from-[#F9A700] to-[#009951]" />
           </div>
+
           <Separator className="my-6" />
 
           {/* Basic Info Section */}
-          <div className="container flex gap-56">
-            <div className="heading ml-28">
-              <h1 className="text-2xl font-bold">Basic Info</h1>
-              <div className="bg-gradient-to-r from-[#F9A700] to-[#009951] h-[6px] w-[110px] rounded-t-md" />
-            </div>
-            <div className="formfields   grid grid-cols-3 gap-10">
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-2">Basic Info</h3>
+            <div className="h-[4px] w-[120px] bg-gradient-to-r from-[#F9A700] to-[#009951] rounded-t-md mb-4" />
+
+            {/* Grid Layout for Form Fields */}
+            <div className="grid lg:grid-cols-3 gap-x-8 gap-y-6">
+              {/* Days */}
+
               <div className="days">
                 <div className="heading">
                   <h1>Select Day</h1>
@@ -341,7 +374,6 @@ const Page = () => {
                   ))}
                 </div>
               </div>
-
               {formData.selectedDays.length > 0 && (
                 <div className="h-[200px] lg:w-[400px] overflow-scroll">
                   <div className="mb-4">
@@ -398,14 +430,12 @@ const Page = () => {
               )}
 
               {/* Name */}
-              <div className="fields ">
-                <Label htmlFor="name" className="text-[16px]">
-                  Name
-                </Label>
+              <div>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   type="text"
                   id="name"
-                  placeholder="Name"
+                  placeholder="Enter your name"
                   value={formData.name}
                   onChange={handleNonNumberChange}
                   required
@@ -413,14 +443,12 @@ const Page = () => {
               </div>
 
               {/* Company Name */}
-              <div className="fields ">
-                <Label htmlFor="company_name" className="text-[16px]">
-                  Company Name
-                </Label>
+              <div>
+                <Label htmlFor="company_name">Company Name</Label>
                 <Input
                   type="text"
                   id="company_name"
-                  placeholder="Company Name"
+                  placeholder="Enter your company name"
                   value={formData.company_name}
                   onChange={handleNonNumberChange}
                   required
@@ -428,12 +456,10 @@ const Page = () => {
               </div>
 
               {/* Phone Number */}
-              <div className="fields">
-                <Label htmlFor="phoneNumber" className="text-[16px]">
-                  Phone Number
-                </Label>
+              <div>
+                <Label htmlFor="number">Phone Number</Label>
                 <PhoneInput
-                  id="phoneNumber"
+                  id="number"
                   international
                   defaultCountry="IN"
                   placeholder="Enter your Phone Number"
@@ -441,30 +467,26 @@ const Page = () => {
                   required
                   limitMaxLength
                   onChange={(value) =>
-                    handleInputChange({
-                      target: { id: "phoneNumber", value },
-                    })
+                    handleInputChange({ target: { id: "number", value } })
                   }
-                  className={`flex h-10 w-full rounded-md border border-input ${
-                    phoneValidation ? "bg-background" : "bg-error"
-                  } px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+                  className={`border rounded-md p-2 ${
+                    phoneValidation ? "bg-white" : "bg-red-100"
+                  }`}
                 />
                 {!phoneValidation && (
-                  <p className="text-error text-sm mt-1 text-red-500">
+                  <p className="text-red-500 text-sm mt-1">
                     Phone numbers do not match.
                   </p>
                 )}
               </div>
 
               {/* Email */}
-              <div className="fields">
-                <Label htmlFor="email" className="text-[16px]">
-                  Email
-                </Label>
+              <div>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   type="email"
                   id="email"
-                  placeholder="Email Address"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
@@ -475,19 +497,15 @@ const Page = () => {
 
           <Separator className="my-6" />
 
-          {/* Company Details Section */}
-         
-          <div className="container grid grid-cols-3 ">
-            <div className="heading ml-28">
-              <h1 className="font-bold text-2xl">Address Details</h1>
-              <div className="bg-gradient-to-r from-[#F9A700] to-[#009951] h-[6px] w-[200px] rounded-t-md" />
-            </div>
-            <div className="formfields grid grid-cols-3 gap-6">
+          {/* Address Details Section */}
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-2">Address Details</h3>
+            <div className="h-[4px] w-[150px] bg-gradient-to-r from-[#F9A700] to-[#009951] rounded-t-md mb-4" />
+
+            <div className="grid lg:grid-cols-3 gap-x-8 gap-y-6">
               {/* City */}
-              <div className="fields ">
-                <Label htmlFor="city" className="text-[16px]">
-                  City
-                </Label>
+              <div>
+                <Label htmlFor="city">City</Label>
                 <Input
                   type="text"
                   id="city"
@@ -495,15 +513,12 @@ const Page = () => {
                   value={formData.city}
                   onChange={handleNonNumberChange}
                   required
-                  maxLength={15}
                 />
               </div>
 
               {/* State */}
-              <div className="fields">
-                <Label htmlFor="state" className="text-[16px]">
-                  State
-                </Label>
+              <div>
+                <Label htmlFor="state">State</Label>
                 <Input
                   type="text"
                   id="state"
@@ -511,15 +526,12 @@ const Page = () => {
                   value={formData.state}
                   onChange={handleNonNumberChange}
                   required
-                  maxLength={15}
                 />
               </div>
 
               {/* Country */}
-              <div className="fields">
-                <Label htmlFor="country" className="text-[16px]">
-                  Country
-                </Label>
+              <div>
+                <Label htmlFor="country">Country</Label>
                 <Select
                   options={optionsCountry}
                   value={optionsCountry.find(
@@ -534,11 +546,9 @@ const Page = () => {
 
           <Separator className="my-6" />
 
-          <div className="fields ml-28">
-            <Label
-              htmlFor="receiveUpdates"
-              className="flex items-center text-[16px] mt-2"
-            >
+          {/* Privacy & Consent */}
+          <div className="mb-6">
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 id="receiveUpdates"
@@ -551,16 +561,12 @@ const Page = () => {
                 }
                 className="mr-2"
               />
-              Would you like to receive future updates from us?
-            </Label>
-          </div>
+              <Label htmlFor="receiveUpdates">
+                Would you like to receive future updates from us?
+              </Label>
+            </div>
 
-          {/* Privacy Policy Consent */}
-          <div className="fields ml-28">
-            <Label
-              htmlFor="privacyPolicy"
-              className="flex items-center text-[16px] mt-2"
-            >
+            <div className="flex items-center mt-4">
               <input
                 type="checkbox"
                 id="privacyPolicy"
@@ -574,34 +580,37 @@ const Page = () => {
                 required
                 className="mr-2"
               />
-              By accepting this, you acknowledge that you have read and
-              understood this Privacy Policy and agree to its terms and
-              conditions.
-            </Label>
+              <Label htmlFor="privacyPolicy">
+                By accepting this, you acknowledge that you have read and
+                understood this Privacy Policy and agree to its terms and
+                conditions.
+              </Label>
+            </div>
           </div>
 
           {/* Submit Buttons */}
-
-          <div className="submit flex justify-center mt-4">
+          <div className="flex justify-center mt-6">
             <div className="flex w-96 justify-between">
-              <Button variant="secondary" type="button" onClick={handleReset} className='w-36 border'>
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={handleReset}
+                className="w-36 border"
+              >
                 Reset
               </Button>
-              <Button type="submit" className="bg-[#F9A700] w-36" >
+              <Button type="submit" className="bg-[#F9A700] w-36">
                 Submit
               </Button>
             </div>
           </div>
 
-          <div className="flex lg:justify-end justify-center">
-            <Image
-              src="/poweredy.png"
-              width={170}
-              height={170}
-              alt="Reacctor World Expo"
-            />
+          {/* Footer Logo */}
+          <div className="flex lg:justify-end justify-center mt-6">
+            <Image src={logo} width={170} height={170} alt="World Expo" />
           </div>
         </form>
+
         <ToastContainer />
       </div>
     </>
